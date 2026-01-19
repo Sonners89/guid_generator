@@ -5,15 +5,32 @@ import java.awt.*;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.util.UUID;
 
 public class GUIDGenerator  extends JFrame {
 
     private JTextArea guidArea;
+    private boolean isFirstGeneration = true;
 
     public GUIDGenerator() {
         initUI();
-        generateNewGuid();
+
+        // Генерируем первый GUID без показа сообщения
+        generateGuidSilently();
+
+        // Добавляем слушатель события открытия окна
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowOpened(WindowEvent e) {
+                // После загрузки окна показываем сообщение о первом GUID
+                if (isFirstGeneration) {
+                    showCopiedMessage();
+                    isFirstGeneration = false;
+                }
+            }
+        });
     }
 
     private void initUI() {
@@ -43,6 +60,7 @@ public class GUIDGenerator  extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 generateNewGuid();
+                showCopiedMessage();
             }
         });
 
@@ -55,20 +73,42 @@ public class GUIDGenerator  extends JFrame {
         setLocationRelativeTo(null);
     }
 
+    private void generateGuidSilently() {
+        // Генерируем GUID без показа сообщения (для начальной загрузки)
+        String guid = UUID.randomUUID().toString().toUpperCase();
+        guidArea.setText(guid);
+
+        // Копируем в буфер обмена
+        copyToClipboard(guid);
+    }
+
     private void generateNewGuid() {
         // Генерируем новый GUID
         String guid = UUID.randomUUID().toString().toUpperCase();
         guidArea.setText(guid);
 
         // Копируем в буфер обмена
-        StringSelection stringSelection = new StringSelection(guid);
+        copyToClipboard(guid);
+    }
+
+    private void copyToClipboard(String text) {
+        StringSelection stringSelection = new StringSelection(text);
         Toolkit.getDefaultToolkit().getSystemClipboard()
                 .setContents(stringSelection, null);
+    }
 
-        // Показываем сообщение (опционально, можно убрать)
-        JOptionPane.showMessageDialog(this,
-                "GUID скопирован в буфер обмена!",
-                "Готово",
-                JOptionPane.INFORMATION_MESSAGE);
+    private void showCopiedMessage() {
+        // Используем invokeLater для гарантии, что окно уже видимо
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                JOptionPane.showMessageDialog(
+                        GUIDGenerator.this,
+                        "GUID скопирован в буфер обмена!",
+                        "Готово",
+                        JOptionPane.INFORMATION_MESSAGE
+                );
+            }
+        });
     }
 }
