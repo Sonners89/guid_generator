@@ -53,7 +53,8 @@ jar {
 launch4j {
     mainClassName = 'guidgenerator.Main'
     outfile = 'GUIDGenerator.exe'
-//    icon = "${projectDir}/icon.ico" // опционально: путь к иконке
+    icon = "${projectDir}/src/main/resources/icon.ico" // опционально: путь к иконке
+//    icon = "${projectDir}/resources/icon_0.ico" // опционально: путь к иконке
 
     // ПРАВИЛЬНЫЙ путь к JAR файлу
     jar = "${project.buildDir}/libs/GUIDGenerator.jar"
@@ -61,7 +62,7 @@ launch4j {
     // Настройки для .exe
     headerType = 'gui' // gui или console
     productName = 'GUID Generator'
-    fileDescription = 'Генератор уникальных идентификаторов'
+    fileDescription = 'Unique Ids generator'
     copyright = '2026'
     companyName = 'AB'
 
