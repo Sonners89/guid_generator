@@ -1,0 +1,112 @@
+plugins {
+    id 'java'
+    id 'application'
+    id 'com.github.ben-manes.versions' version '0.51.0'
+    id 'edu.sc.seis.launch4j' version '2.5.4'
+}
+
+group = 'ru.work.ksa'
+version = '1.0.0'
+description = 'Генератор GUID'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation platform('org.junit:junit-bom:5.10.0')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+application {
+    mainClass = 'guidgenerator.Main'
+}
+
+jar {
+    manifest {
+        attributes(
+                'Main-Class': 'guidgenerator.Main',
+                'Implementation-Title': 'GUID Generator',
+                'Implementation-Version': version
+        )
+    }
+
+    // Устанавливаем базовое имя без версии для удобства
+    archiveBaseName = 'GUIDGenerator'
+    archiveVersion = ''  // Убираем версию из имени файла
+
+    // Собираем fat JAR со всеми зависимостями
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+// Конфигурация для создания .exe файла
+launch4j {
+    mainClassName = 'guidgenerator.Main'
+    outfile = 'GUIDGenerator.exe'
+//    icon = "${projectDir}/icon.ico" // опционально: путь к иконке
+
+    // ПРАВИЛЬНЫЙ путь к JAR файлу
+    jar = "${project.buildDir}/libs/GUIDGenerator.jar"
+
+    // Настройки для .exe
+    headerType = 'gui' // gui или console
+    productName = 'GUID Generator'
+    fileDescription = 'Генератор уникальных идентификаторов'
+    copyright = '2026'
+    companyName = 'AB'
+
+    // Настройки JRE
+    jreMinVersion = '21'
+    jdkPreference = 'preferJre'
+    bundledJre64Bit = true  // Лучше использовать true для 64-bit систем
+    bundledJrePath = '%JAVA_HOME%'
+
+    // Опции JVM (опционально)
+    jvmOptions = ['-Xmx256m', '-Xms128m']
+
+    // Дополнительные настройки
+    chdir = '.'
+    stayAlive = false
+    dontWrapJar = false
+}
+
+// Задача для копирования JAR в правильное место для launch4j
+tasks.register('prepareForLaunch4j', Copy) {
+    dependsOn jar
+    from jar
+    into "${buildDir}/launch4j"
+
+    // Переименовываем JAR для совместимости
+    rename { String fileName ->
+        'GUIDGenerator.jar'
+    }
+}
+
+// Убедимся, что launch4j зависит от подготовки
+tasks.createExe.dependsOn prepareForLaunch4j
+
+// Задача для очистки
+tasks.register('cleanAll', Delete) {
+    delete buildDir
+}
+
+// Упрощенная сборка
+tasks.register('buildExe') {
+    dependsOn 'createExe'
+    group = 'build'
+    description = 'Собирает .exe файл'
+}
+
+test {
+    useJUnitPlatform()
+}
