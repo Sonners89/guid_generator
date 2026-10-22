@@ -15,7 +15,7 @@ public class Main {
                     e.printStackTrace();
                 }
 
-                GUIDGenerator app = new GUIDGenerator();
+                IdentifierGenerator app = new IdentifierGenerator();
                 app.setVisible(true);
             }
         });
